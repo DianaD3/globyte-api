@@ -1,0 +1,14 @@
+flask
+flask_cors
+pymongo
+requests
+pprint
+numpy
+pandas
+jwt
+bcrypt
+pyjwt
+dnspython
+matplotlib
+statsmodels
+sklearn
