@@ -1,17 +1,16 @@
 from flask import Flask # Flask
 from flask import request
 from flask_cors import CORS
-from Terrabyte import get, prepare, insert # our functions
-from Terrabyte import auth
+from Globyte import get, prepare, insert # our functions
+from Globyte import auth
 import numpy as np
-from ML import ml
 
 app = Flask(__name__) # init flask
 CORS(app, allow_headers='*')
 
 @app.route('/') # home route
 def index():
-    return "Terrabyte"
+    return "Globyte"
 
 @app.route('/get/collection') # get pinpoint collection
 def get_collections():
@@ -91,7 +90,6 @@ def anomaly():
     })
 
 @app.route('/auth/login', methods=["POST"])
-
 def login():
     data = request.get_json()
     if not ('email' in data and 'password' in data):
@@ -112,7 +110,7 @@ def login():
 def register():
     data = request.get_json(force=True)
     # basic validation
-    if not ('username' in data and 'email' in data and 'password' in data and auth.is_valid_email(data['email'])):
+    if not ('username' in data and 'email' in data and 'password' in data and 'securityAnswer' in data and auth.is_valid_email(data['email'])):
         print('Bad credentials')
         return prepare.data_to_json({
             'err': '400 - Bad request'
@@ -120,8 +118,9 @@ def register():
     username = data['username']
     email = data['email']
     password = data['password']
+    securityAnswer = data['securityAnswer']
 
-    response = auth.register_new_user(username, email, password)
+    response = auth.register_new_user(username, email, password, securityAnswer)
 
     return prepare.data_to_json(response)
 
@@ -133,6 +132,28 @@ def get_current_user():
         response = auth.authorize_user(headers['Authorization'])
         print(response)
         return prepare.data_to_json(response)
+    else:
+        return prepare.data_to_json({
+            'err': '401 - Access Denied'
+        })
+
+@app.route('/auth/changePassword', methods=["POST"])
+def change_password():
+    data = request.get_json(force=True)
+    if not ('email' in data and 'newPassword' in data and 'securityAnswer' in data):
+        return prepare.data_to_json({
+            'err': '400 - Bad request'
+        })
+    
+    email = data['email']
+    newPassword = data['newPassword']
+    securityAnswer = data['securityAnswer']
+    
+    isAnswerOk = auth.check_answer(email, securityAnswer)
+    
+    if isAnswerOk:
+        response = auth.change_password(email, newPassword)
+        return response;
     else:
         return prepare.data_to_json({
             'err': '401 - Access Denied'

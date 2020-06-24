@@ -16,13 +16,14 @@ def is_valid_email(email):
 
 
 #adds a new user to the database
-def register_new_user(username, email, password):
+def register_new_user(username, email, password, securityAnswer):
     db = client['globyte']
     hashedPassword = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     db.users.insert_one({
         'email': email,
         'username': username,
-        'password': hashedPassword
+        'password': hashedPassword,
+        'securityAnswer': securityAnswer
     })
     return {'msg': '200 - Successfully registered user!'}
 
@@ -56,3 +57,16 @@ def authorize_user(token):
         print(userFound)
         return {'msg': '200 - OK', 'user': userFound} if bool(userFound) else {'err': '401 - Access Denied'}
     return None
+
+def change_password(email, newPassword):
+    db = client['globyte']
+    newHashedPassword = bcrypt.hashpw(newPassword.encode('utf-8'), bcrypt.gensalt())
+    db.users.update_one({'email': email}, {'$set':{'password': newHashedPassword}})
+    return {'msg': '200 - Successfully changed password!'}
+
+def check_answer(email, securityAnswer):
+    db = client['globyte']
+    print(email)
+    print(securityAnswer)
+    userFound = db.users.find_one({'email': email, 'securityAnswer': securityAnswer})
+    return bool(userFound)
