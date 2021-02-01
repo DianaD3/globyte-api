@@ -1,7 +1,7 @@
 from flask import Flask # Flask
 from flask import request
 from flask_cors import CORS
-from Globyte import get, prepare, insert # our functions
+from Globyte import get, prepare, insert
 from Globyte import auth
 import numpy as np
 
@@ -73,23 +73,8 @@ def insert_multiple():
     else:
         return 'Error'
 
-@app.route('/ml/forecasting', methods=["POST"])
-def forecasting():
-    data = request.get_json()['input']
-    output = ml.forecast(data, int(0.1*len(data)))
-    return prepare.data_to_json({
-        'output': output
-    })
 
-@app.route('/ml/anomaly', methods=["POST"])
-def anomaly():
-    data = request.get_json()['input']
-    output = ml.anomaly_detection(data).tolist()
-    return prepare.data_to_json({
-        'output': output
-    })
-
-@app.route('/auth/login', methods=["POST"])
+@app.route('/auth/login', methods=["POST"]) 
 def login():
     data = request.get_json()
     if not ('email' in data and 'password' in data):
@@ -109,7 +94,7 @@ def login():
 @app.route('/auth/register', methods=["POST"])
 def register():
     data = request.get_json(force=True)
-    # basic validation
+    # basic validation, verify if exists
     if not ('username' in data and 'email' in data and 'password' in data and 'securityAnswer' in data and auth.is_valid_email(data['email'])):
         print('Bad credentials')
         return prepare.data_to_json({
@@ -139,7 +124,7 @@ def get_current_user():
 
 @app.route('/auth/changePassword', methods=["POST"])
 def change_password():
-    data = request.get_json(force=True)
+    data = request.get_json(force=True) 
     if not ('email' in data and 'newPassword' in data and 'securityAnswer' in data):
         return prepare.data_to_json({
             'err': '400 - Bad request'
@@ -153,7 +138,7 @@ def change_password():
     
     if isAnswerOk:
         response = auth.change_password(email, newPassword)
-        return response;
+        return response
     else:
         return prepare.data_to_json({
             'err': '401 - Access Denied'
